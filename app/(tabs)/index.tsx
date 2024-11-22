@@ -1,147 +1,94 @@
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TextInput, Button, FlatList, View, StyleSheet } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
-import { initialMenuItems, courses } from './data';
+import { View, Text, Button, FlatList, StyleSheet } from 'react-native';
 
-type MenuItem = {
-  dishName: string;
-  description: string;
-  course: string | null;
-  price: string;
-};
+// Define a type for menu items
+interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+  course: 'starter' | 'main' | 'dessert';
+}
 
-const MenuEntry: React.FC = () => {
-  const [dishName, setDishName] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [course, setCourse] = useState<string | null>(null);
-  const [price, setPrice] = useState<string>('');
-  
+// Sample menu items
+const initialMenuItems: MenuItem[] = [
+  { id: 1, name: 'Caesar Salad', price: 5.99, course: 'starter' },
+  { id: 2, name: 'Steak', price: 15.99, course: 'main' },
+  { id: 3, name: 'Cheesecake', price: 6.99, course: 'dessert' },
+  { id: 4, name: 'Bruschetta', price: 4.99, course: 'starter' },
+  { id: 5, name: 'Pasta', price: 12.99, course: 'main' },
+];
+
+const IndexScreen = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [filteredCourse, setFilteredCourse] = useState<string>('all');
 
-  const handleAddMenuItem = () => {
-    if (dishName && description && course && price) {
-      const newItem: MenuItem = {
-        dishName,
-        description,
-        course,
-        price,
-      };
-
-      const exists = menuItems.some(item => item.dishName.toLowerCase() === dishName.toLowerCase());
-      if (exists) {
-        alert("Dish name already exists!");
-        return;
-      }
-
-      setMenuItems((prevItems) => [...prevItems, newItem]);
-      setDishName('');
-      setDescription('');
-      setCourse(null);
-      setPrice('');
-    } else {
-      alert("Please fill all fields");
-    }
+  const removeItem = (id: number) => {
+    setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
-  const handleRemoveMenuItem = (dishNameToRemove: string) => {
-    setMenuItems(prevItems => prevItems.filter(item => item.dishName !== dishNameToRemove));
+  const filteredItems = filteredCourse === 'all'
+    ? menuItems
+    : menuItems.filter((item) => item.course === filteredCourse);
+
+  const calculateAveragePrice = (items: MenuItem[]) => {
+    const total = items.reduce((sum, item) => sum + item.price, 0);
+    return items.length > 0 ? (total / items.length).toFixed(2) : '0.00';
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Chef's Item Entry</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Dish Name"
-        value={dishName}
-        onChangeText={setDishName}
-        textAlign='center'
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-      />
-      <RNPickerSelect
-        onValueChange={setCourse}
-        style={pickerSelectStyles}
-        placeholder={{ label: 'Select Course...', value: null }} 
-        items={courses}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="numeric"
-      />
-      
-      <Button title="Add Menu Item" onPress={handleAddMenuItem} />
-     
-
+    <View style={styles.container}>
+      <Text style={styles.title}>Menu</Text>
+      <View style={styles.buttonContainer}>
+        <Button title="Show All" onPress={() => setFilteredCourse('all')} />
+        <Button title="Starters" onPress={() => setFilteredCourse('starter')} />
+        <Button title="Main Courses" onPress={() => setFilteredCourse('main')} />
+        <Button title="Desserts" onPress={() => setFilteredCourse('dessert')} />
+      </View>
+      <Text style={styles.averagePrice}>
+        Average Price: ${calculateAveragePrice(filteredItems)}
+      </Text>
       <FlatList
-        data={menuItems}
-        keyExtractor={(item) => item.dishName}
+        data={filteredItems}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.menuItem}>
-            <Text style={styles.menuText}>{item.dishName}</Text>
-            <Text style={styles.menuText}>{item.description}</Text>
-            <Text style={styles.menuText}>{item.course}</Text>
-            <Text style={styles.menuText}>${item.price}</Text>
+          <View style={styles.item}>
+            <Text>{item.name} - ${item.price.toFixed(2)}</Text>
+            <Button title="Remove" onPress={() => removeItem(item.id)} />
           </View>
         )}
       />
-    </SafeAreaView>
-  );
+    </View>
+  );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#FFCCCB', 
+    backgroundColor: '#ffffff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#FF0000', 
+    marginBottom: 20,
   },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 5,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
   },
-  menuItem: {
+  averagePrice: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  menuText: {
-    fontSize: 16,
-  },
-  footer: {
-    fontSize: 18,
-    marginTop: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
 });
 
-const pickerSelectStyles = {
-  inputIOS: {
-    // customize iOS styles here if needed
-  },
-  inputAndroid: {
-    // customize Android styles here if needed
-  },
-};
-
-export default MenuEntry;
-
-
+export default IndexScreen;
