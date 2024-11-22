@@ -32,6 +32,15 @@ export default function TabLayout() {
           ),
         }}
       />
-    </Tabs>
+      <Tabs.Screen
+        name="separate"
+        options={{
+          title: 'Separate Menu',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'menu' : 'menu-outline'} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
-}
+}  

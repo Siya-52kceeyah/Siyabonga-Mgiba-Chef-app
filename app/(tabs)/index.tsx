@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, Text, TextInput, Button, FlatList, View, StyleSheet } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-
-// Define your course type according to your data structure
-type Course = {
-  label: string;
-  value: string | null;
-};
+import { initialMenuItems, courses } from './data';
 
 type MenuItem = {
   dishName: string;
@@ -20,14 +15,8 @@ const MenuEntry: React.FC = () => {
   const [description, setDescription] = useState<string>('');
   const [course, setCourse] = useState<string | null>(null);
   const [price, setPrice] = useState<string>('');
-
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-
-  const courses: Course[] = [
-    { label: 'Appetizer', value: 'appetizer' },
-    { label: 'Main Course', value: 'main' },
-    { label: 'Dessert', value: 'dessert' },
-  ];
+  
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
 
   const handleAddMenuItem = () => {
     if (dishName && description && course && price) {
@@ -37,9 +26,14 @@ const MenuEntry: React.FC = () => {
         course,
         price,
       };
+
+      const exists = menuItems.some(item => item.dishName.toLowerCase() === dishName.toLowerCase());
+      if (exists) {
+        alert("Dish name already exists!");
+        return;
+      }
+
       setMenuItems((prevItems) => [...prevItems, newItem]);
-      
-      // Reset state after adding
       setDishName('');
       setDescription('');
       setCourse(null);
@@ -49,9 +43,13 @@ const MenuEntry: React.FC = () => {
     }
   };
 
+  const handleRemoveMenuItem = (dishNameToRemove: string) => {
+    setMenuItems(prevItems => prevItems.filter(item => item.dishName !== dishNameToRemove));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Chefs Item Entry</Text>
+      <Text style={styles.title}>Chef's Item Entry</Text>
       
       <TextInput
         style={styles.input}
@@ -81,6 +79,7 @@ const MenuEntry: React.FC = () => {
       />
       
       <Button title="Add Menu Item" onPress={handleAddMenuItem} />
+     
 
       <FlatList
         data={menuItems}
@@ -94,13 +93,10 @@ const MenuEntry: React.FC = () => {
           </View>
         )}
       />
-
-      <Text style={styles.footer}>
-        Total Items: {menuItems.length}
-      </Text>
     </SafeAreaView>
-  );
+  );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -137,15 +133,15 @@ const styles = StyleSheet.create({
   },
 });
 
-// Add your pickerSelectStyles here according to your UI design
 const pickerSelectStyles = {
   inputIOS: {
-    // iOS styles
+    // customize iOS styles here if needed
   },
   inputAndroid: {
-    // Android styles
+    // customize Android styles here if needed
   },
 };
 
 export default MenuEntry;
+
 
